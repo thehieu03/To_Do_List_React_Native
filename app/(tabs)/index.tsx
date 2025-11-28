@@ -1,7 +1,8 @@
-import { Link } from "expo-router";
+import { useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
+  const router = useRouter();
   return (
     <View style={styles.container}>
       <View style={styles.box1}>
@@ -13,7 +14,6 @@ export default function Index() {
       <View style={styles.box3}>
         <Text style={styles.text}>Box 3</Text>
       </View>
-      <Link href="/about">Visit about screen</Link>
     </View>
   );
 }
