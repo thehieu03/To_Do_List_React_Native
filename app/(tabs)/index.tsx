@@ -1,19 +1,15 @@
 import { useRouter } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import useTheme from "@/hooks/useTheme";
 
 export default function Index() {
   const router = useRouter();
+  const {toggleDarkMode} = useTheme();
   return (
     <View style={styles.container}>
-      <View style={styles.box1}>
-        <Text style={styles.text}>Box 1</Text>
-      </View>
-      <View style={styles.box2}>
-        <Text style={styles.text}>Box 2</Text>
-      </View>
-      <View style={styles.box3}>
-        <Text style={styles.text}>Box 3</Text>
-      </View>
+      <TouchableOpacity onPress={toggleDarkMode}>
+          <Text>Add Todo</Text>
+      </TouchableOpacity>
     </View>
   );
 }
