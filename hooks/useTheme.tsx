@@ -1,6 +1,12 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, {createContext, ReactNode, useContext, useEffect, useState} from "react";
-import { Text, View } from "react-native";
+import React, {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
+
 export interface ColorScheme {
   bg: string;
   surface: string;
@@ -85,38 +91,64 @@ const darkColors: ColorScheme = {
   statusBarStyle: "light-content" as const,
 };
 
+// Định nghĩa type cho Context
 interface ThemeContextType {
-  idDarkMode: boolean;
-  toggleDarkMode: () => void;
   colors: ColorScheme;
+  isDark: boolean;
+  toggleTheme: () => void;
+  setTheme: (isDark: boolean) => void;
 }
-const ThemeContext = createContext<undefined | ThemeContextType>(undefined);
-export const ThemeProvider=({children}:{children:ReactNode})=>{
-    const [idDarkMode,setIdDarkMode]=useState(false);
-    useEffect(()=>{
-        AsyncStorage.getItem("darkMode").then((value)=>{
-           if(value){
-               setIdDarkMode(JSON.parse(value));
-           }
-        });
-    },[]);
-    const toggleDarkMode=async ()=>{
-        const newMode=!idDarkMode;
-        setIdDarkMode(newMode);
-        await AsyncStorage.setItem("darkMode",JSON.stringify(newMode));
-    }
-    const colors=idDarkMode ? darkColors:lightColors;
-    return <ThemeContext.Provider value={{idDarkMode,toggleDarkMode,colors}}>
-        {children}
-    </ThemeContext.Provider>
 
+// Tạo Context
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+// Props cho ThemeProvider
+interface ThemeProviderProps {
+  children: ReactNode;
+  initialTheme?: "light" | "dark";
 }
-const useTheme = () => {
-    const context = useContext(ThemeContext);
-    if(context === undefined){
-        throw new Error("useTheme must be used within ThemeProvider");
-    }
-    return context;
+
+// ThemeProvider Component
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({
+  children,
+  initialTheme = "light",
+}) => {
+  const [isDark, setIsDark] = useState(initialTheme === "dark");
+
+  const colors = isDark ? darkColors : lightColors;
+
+  const toggleTheme = useCallback(() => {
+    setIsDark((prev) => !prev);
+  }, []);
+
+  const setTheme = useCallback((dark: boolean) => {
+    setIsDark(dark);
+  }, []);
+
+  const value: ThemeContextType = useMemo(
+    () => ({
+      colors,
+      isDark,
+      toggleTheme,
+      setTheme,
+    }),
+    [colors, isDark, toggleTheme, setTheme]
+  );
+
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
+};
+
+// Hook để sử dụng theme trong các component con
+const useTheme = (): ThemeContextType => {
+  const context = useContext(ThemeContext);
+
+  if (context === undefined) {
+    throw new Error("useTheme must be used within a ThemeProvider");
+  }
+
+  return context;
 };
 
 export default useTheme;
